@@ -1,0 +1,3 @@
+date,node_id,D,M
+# Tin định tính: D = +1 đúng chiều chuẩn, -1 ngược chiều; M = 0.01..1 theo thang trong Excel
+# Ví dụ (bỏ dấu # để dùng): 2025-02-21,85,1,1.0

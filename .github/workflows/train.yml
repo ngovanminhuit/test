@@ -1,0 +1,66 @@
+name: Huan luyen infotrade
+
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: "Ngay bat dau lay mau (YYYY-MM-DD)"
+        default: "2018-01-01"
+  push:
+    branches: [main]
+    paths: ["*.py", "*.xlsx", "requirements.txt", ".github/workflows/train.yml"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: train
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Cai thu vien
+        run: pip install -r requirements.txt
+
+      - name: Thu thap du lieu
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: |
+          mkdir -p results
+          python infotrade.py fetch 2>&1 | tee results/fetch.log
+
+      - name: Huan luyen
+        run: python infotrade.py train --start "${{ inputs.start || '2018-01-01' }}" 2>&1 | tee results/train.log
+
+      - name: Cham diem ngay gan nhat
+        run: python infotrade.py score 2>&1 | tee results/score.log
+
+      - name: Luu ket qua vao repo
+        if: always()
+        run: |
+          cp -f weights_trained.csv Infotrade_100_Node_BTC_trained.xlsx samples_features.csv results/ 2>/dev/null || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add results data
+          git commit -m "Ket qua huan luyen $(date -u +%F_%H%M)" || echo "Khong co thay doi"
+          git pull --rebase && git push
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ket-qua
+          path: results/

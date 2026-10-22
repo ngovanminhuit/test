@@ -1,0 +1,8 @@
+pandas>=2.0
+numpy
+scipy
+requests
+openpyxl
+yfinance
+lxml
+html5lib

@@ -1,0 +1,3 @@
+date,node_id,value
+# Số thô có dấu theo chiều chuẩn, đơn vị như cột "Chỉ số đo" trong Excel
+# Ví dụ ETF BTC vào ròng 1045 triệu USD (bỏ dấu # để dùng): 2024-03-12,33,1045
