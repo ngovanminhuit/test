@@ -1,0 +1,41 @@
+Mẫu: 482 (tăng 262, giảm 220), 2018-01-02 -> 2026-09-18
+Node tự động: 36 | node có dữ liệu trong mẫu: 34/100
+
+Walk-forward (huấn luyện các năm trước, kiểm tra năm sau):
+  lambda=0.003  độ chính xác=54.6%
+  lambda=0.01   độ chính xác=53.4%
+  lambda=0.03   độ chính xác=50.1%
+  lambda=0.1    độ chính xác=50.6%
+  lambda=0.3    độ chính xác=51.9%
+  lambda=1.0    độ chính xác=52.6%
+  -> chọn lambda=0.003
+
+  Năm   Mẫu  Đúng(W học)  Đúng(W khởi tạo)  Đoán theo đa số
+  2019    61       47.5%            50.8%           55.7%
+  2020    56       55.4%            53.6%           69.6%
+  2021    95       57.9%            50.5%           52.6%
+  2022    56       50.0%            48.2%           44.6%
+  2023    32       59.4%            68.8%           65.6%
+  2024    51       47.1%            56.9%           56.9%
+  2025    27       63.0%            37.0%           48.1%
+  2026    23       69.6%            60.9%           43.5%
+  Tổng   401       54.6%            52.6%           55.1%
+
+Node thay đổi W nhiều nhất:
+   87 Stablecoin mất peg                      -700 ->   258  (482 mẫu)
+   92 Biến động mạnh của ETH / altcoin lớn     300 ->  -573  (482 mẫu)
+   22 Nasdaq                                   750 ->   -87  (317 mẫu)
+   21 S&P 500                                  650 ->   -19  (318 mẫu)
+   15 Lợi suất trái phiếu Mỹ 10 năm           -700 ->   -36  (316 mẫu)
+   71 Phí giao dịch / mempool                   80 ->  -570  (482 mẫu)
+   52 Implied volatility (DVOL)               -250 ->   329  (257 mẫu)
+   23 VIX                                     -600 ->   -62  (317 mẫu)
+   17 Chỉ số DXY                              -800 ->  -263  (316 mẫu)
+   95 Fear & Greed Index                      -300 ->   176  (457 mẫu)
+   30 Kích thích kinh tế / PBoC Trung Quốc     450 ->    31  (69 mẫu)
+   40 Nguồn cung USDC                          300 ->   -60  (414 mẫu)
+   67 NUPL                                    -250 ->  -605  (141 mẫu)
+   99 Vị trí giá so MA200 / mốc kỹ thuật       400 ->   743  (121 mẫu)
+   66 SOPR                                     250 ->   -51  (141 mẫu)
+
+Đã ghi: weights_trained.csv, Infotrade_100_Node_BTC_trained.xlsx, samples_features.csv
