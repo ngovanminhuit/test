@@ -121,16 +121,21 @@ SES = requests.Session()
 SES.headers["User-Agent"] = "Mozilla/5.0 infotrade"
 
 
-def get(url, **kw):
-    for i in range(4):
+def get(url, timeout=30, tries=3, **kw):
+    for i in range(tries):
         try:
-            r = SES.get(url, timeout=40, **kw)
+            r = SES.get(url, timeout=timeout, **kw)
             r.raise_for_status()
             return r
+        except requests.HTTPError as e:
+            code = e.response.status_code if e.response is not None else 0
+            if code in (400, 401, 403, 404, 451) or i == tries - 1:
+                raise  # lỗi chặn/không tồn tại: không thử lại
+            time.sleep(3 * (i + 1))
         except Exception:
-            if i == 3:
+            if i == tries - 1:
                 raise
-            time.sleep(2 * (i + 1))
+            time.sleep(3 * (i + 1))
 
 
 def save(df, key):
@@ -143,11 +148,11 @@ def ms_to_date(ms):
     return pd.to_datetime(ms, unit="ms").dt.strftime("%Y-%m-%d")
 
 
-def fetch_btc():
-    url, start, rows = "https://api.binance.com/api/v3/klines", 1502928000000, []
+def _klines(base):
+    start, rows = 1502928000000, []
     while True:
-        js = get(url, params=dict(symbol="BTCUSDT", interval="1d",
-                                  startTime=start, limit=1000)).json()
+        js = get(f"{base}/api/v3/klines", params=dict(symbol="BTCUSDT", interval="1d",
+                                                     startTime=start, limit=1000)).json()
         if not js:
             break
         rows += js
@@ -157,24 +162,70 @@ def fetch_btc():
     df = pd.DataFrame([r[:6] for r in rows],
                       columns=["t", "open", "high", "low", "close", "volume"])
     df["date"] = ms_to_date(df["t"])
+    return df
+
+
+def _coinbase_ohlcv():
+    rows, start, now = [], dt.datetime(2017, 8, 1), dt.datetime.utcnow()
+    while start < now:
+        end = min(start + dt.timedelta(days=299), now)
+        js = get("https://api.exchange.coinbase.com/products/BTC-USD/candles",
+                 params=dict(granularity=86400, start=start.isoformat(), end=end.isoformat())).json()
+        rows += js if isinstance(js, list) else []
+        start = end + dt.timedelta(days=1)
+        time.sleep(0.4)
+    df = pd.DataFrame(rows, columns=["t", "low", "high", "open", "close", "volume"])
+    df["date"] = pd.to_datetime(df["t"], unit="s").dt.strftime("%Y-%m-%d")
+    return df.drop_duplicates("date").sort_values("date")
+
+
+def fetch_btc():
+    df = None
+    for base in ("https://api.binance.com", "https://data-api.binance.vision"):
+        try:
+            df = _klines(base)
+            log(f"  nguồn: {base}")
+            break
+        except Exception as e:
+            log(f"  ! {base}: {e}")
+    if df is None or df.empty:
+        df = _coinbase_ohlcv()
+        log("  nguồn: Coinbase BTC-USD")
     today = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d")
     df = df[df["date"] < today]  # bỏ nến chưa đóng
     save(df[["date", "open", "high", "low", "close", "volume"]], "btc")
 
 
 def fetch_funding():
-    url, start, rows = "https://fapi.binance.com/fapi/v1/fundingRate", 1568102400000, []
-    while True:
-        js = get(url, params=dict(symbol="BTCUSDT", startTime=start, limit=1000)).json()
-        if not js:
-            break
-        rows += js
-        start = js[-1]["fundingTime"] + 1
-        if len(js) < 1000:
-            break
-    df = pd.DataFrame(rows)
-    df["date"] = ms_to_date(df["fundingTime"])
-    df["value"] = df["fundingRate"].astype(float) * 100  # %/8h
+    try:
+        url, start, rows = "https://fapi.binance.com/fapi/v1/fundingRate", 1568102400000, []
+        while True:
+            js = get(url, params=dict(symbol="BTCUSDT", startTime=start, limit=1000)).json()
+            if not js:
+                break
+            rows += js
+            start = js[-1]["fundingTime"] + 1
+            if len(js) < 1000:
+                break
+        df = pd.DataFrame(rows)
+        df["date"] = ms_to_date(df["fundingTime"])
+        df["value"] = df["fundingRate"].astype(float) * 100  # %/8h
+        log("  nguồn: Binance")
+    except Exception as e:
+        log(f"  ! Binance: {e} -> dùng Deribit BTC-PERPETUAL")
+        rows, start, now = [], dt.datetime(2019, 5, 1), dt.datetime.utcnow()
+        while start < now:
+            end = min(start + dt.timedelta(days=30), now)
+            js = get("https://www.deribit.com/api/v2/public/get_funding_rate_history",
+                     params=dict(instrument_name="BTC-PERPETUAL",
+                                 start_timestamp=int(start.timestamp() * 1000),
+                                 end_timestamp=int(end.timestamp() * 1000))).json()
+            rows += js.get("result", [])
+            start = end
+            time.sleep(0.2)
+        df = pd.DataFrame(rows)
+        df["date"] = ms_to_date(df["timestamp"])
+        df["value"] = df["interest_8h"].astype(float) * 100  # %/8h
     save(df.groupby("date", as_index=False)["value"].mean(), "funding")
 
 
@@ -199,16 +250,45 @@ def fetch_yf():
 FRED = ["DGS10", "DGS2", "WALCL", "WTREGEN", "RRPONTSYD"]
 
 
+YF_FALLBACK = {"DGS10": ["^TNX"], "DGS2": ["2YY=F", "^FVX"]}  # khi FRED lỗi
+
+
+def fred_csv(sid):
+    r = get("https://fred.stlouisfed.org/graph/fredgraph.csv", timeout=60, tries=2,
+            params={"id": sid, "cosd": "2015-01-01"},
+            headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                                   "(KHTML, like Gecko) Chrome/126 Safari/537.36"})
+    df = pd.read_csv(io.StringIO(r.text))
+    df.columns = ["date", "value"]
+    df["value"] = pd.to_numeric(df["value"], errors="coerce")
+    return df.dropna()
+
+
 def fetch_fred():
+    fails = 0
     for sid in FRED:
-        try:
-            r = get("https://fred.stlouisfed.org/graph/fredgraph.csv", params={"id": sid})
-            df = pd.read_csv(io.StringIO(r.text))
-            df.columns = ["date", "value"]
-            df["value"] = pd.to_numeric(df["value"], errors="coerce")
-            save(df.dropna(), sid)
-        except Exception as e:
-            log(f"  ! FRED {sid} lỗi: {e}")
+        if fails >= 2:
+            log(f"  ! FRED không phản hồi - bỏ qua {sid}")
+        else:
+            try:
+                save(fred_csv(sid), sid)
+                continue
+            except Exception as e:
+                fails += 1
+                log(f"  ! FRED {sid}: {type(e).__name__}")
+        for tk in YF_FALLBACK.get(sid, []):
+            try:
+                import yfinance as yf
+                df = yf.download(tk, start="2017-01-01", progress=False, auto_adjust=False)
+                if isinstance(df.columns, pd.MultiIndex):
+                    df.columns = df.columns.get_level_values(0)
+                if len(df):
+                    save(pd.DataFrame({"date": pd.to_datetime(df.index).strftime("%Y-%m-%d"),
+                                       "value": df["Close"].values}).dropna(), sid)
+                    log(f"    (dự phòng Yahoo {tk})")
+                    break
+            except Exception as e:
+                log(f"  ! Yahoo {tk}: {e}")
 
 
 def fetch_fng():

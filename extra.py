@@ -101,7 +101,9 @@ def fetch_all(get, save, log):
 
 
 def fetch_fed_target(get, save, log):
-    r = get("https://fred.stlouisfed.org/graph/fredgraph.csv", params={"id": "DFEDTARU"})
+    r = get("https://fred.stlouisfed.org/graph/fredgraph.csv", timeout=60, tries=2,
+            params={"id": "DFEDTARU", "cosd": "2015-01-01"},
+            headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/126 Safari/537.36"})
     df = pd.read_csv(io.StringIO(r.text))
     df.columns = ["date", "value"]
     df["value"] = pd.to_numeric(df["value"], errors="coerce")
