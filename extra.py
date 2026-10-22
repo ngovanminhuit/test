@@ -92,10 +92,12 @@ def fetch_all(get, save, log):
              ("GDELT tin tức (~15 phút)", fetch_gdelt)]
     for name, fn in steps:
         log(f"Tải {name} ...")
+        t = time.time()
         try:
             fn(get, save, log)
         except Exception as e:
             log(f"  ! Lỗi {name}: {e}")
+        log(f"  ({time.time() - t:.0f}s)")
 
 
 def fetch_fed_target(get, save, log):
@@ -300,30 +302,48 @@ def fetch_bitcoin_data(get, save, log):
         time.sleep(2)
 
 
+GDELT_BUDGET = 25 * 60  # tối đa 25 phút cho GDELT
+_gdelt_fail = {"n": 0}
+
+
+def _gdelt_call(params, log, query, y0):
+    """1 truy vấn GDELT, timeout ngắn, thử lại 1 lần khi bị 429/lỗi mạng."""
+    import requests
+    for attempt in range(2):
+        try:
+            r = requests.get("https://api.gdeltproject.org/api/v2/doc/doc", params=params,
+                             timeout=25, headers={"User-Agent": "Mozilla/5.0 infotrade"})
+            if r.status_code == 429:
+                time.sleep(15)
+                continue
+            r.raise_for_status()
+            txt = r.text.strip()
+            return r.json() if txt.startswith("{") else {}
+        except Exception as e:
+            if attempt == 1:
+                log(f"    ! GDELT '{query}' {y0}: {type(e).__name__}")
+            time.sleep(6)
+    return None
+
+
 def _gdelt_series(get, query, mode, log):
-    parts = []
+    parts, ok = [], False
     now = dt.datetime.utcnow()
     for y0 in range(2017, now.year + 1, 3):
         a = dt.datetime(y0, 1, 1)
         b = min(dt.datetime(y0 + 2, 12, 31, 23, 59, 59), now)
-        for attempt in range(4):
-            try:
-                r = get("https://api.gdeltproject.org/api/v2/doc/doc",
-                        params=dict(query=query, mode=mode, format="json",
-                                    startdatetime=a.strftime("%Y%m%d%H%M%S"),
-                                    enddatetime=b.strftime("%Y%m%d%H%M%S")))
-                js = r.json() if r.text.strip().startswith("{") else {}
-                tl = js.get("timeline", [])
-                if tl:
-                    df = pd.DataFrame(tl[0]["data"])
-                    df["date"] = pd.to_datetime(df["date"], format="%Y%m%dT%H%M%SZ").dt.strftime("%Y-%m-%d")
-                    parts.append(df.groupby("date", as_index=False)["value"].mean())
-                break
-            except Exception as e:
-                if attempt == 3:
-                    log(f"    ! GDELT '{query}' {y0}: {e}")
-                time.sleep(10 * (attempt + 1))
+        js = _gdelt_call(dict(query=query, mode=mode, format="json",
+                              startdatetime=a.strftime("%Y%m%d%H%M%S"),
+                              enddatetime=b.strftime("%Y%m%d%H%M%S")), log, query, y0)
+        if js is not None:
+            ok = True
+            tl = js.get("timeline", [])
+            if tl and tl[0].get("data"):
+                df = pd.DataFrame(tl[0]["data"])
+                df["date"] = pd.to_datetime(df["date"], format="%Y%m%dT%H%M%SZ").dt.strftime("%Y-%m-%d")
+                parts.append(df.groupby("date", as_index=False)["value"].mean())
         time.sleep(5.5)  # giới hạn 1 truy vấn / 5 giây
+    _gdelt_fail["n"] = 0 if ok else _gdelt_fail["n"] + 1
     if not parts:
         return None
     return pd.concat(parts).drop_duplicates("date", keep="last")
@@ -331,7 +351,14 @@ def _gdelt_series(get, query, mode, log):
 
 def fetch_gdelt(get, save, log):
     done = set()
+    t0 = time.time()
     for nid, (q, kind, _) in GDELT_Q.items():
+        if _gdelt_fail["n"] >= 3:
+            log("  ! GDELT không phản hồi 3 truy vấn liên tiếp - bỏ qua phần còn lại")
+            return
+        if time.time() - t0 > GDELT_BUDGET:
+            log("  ! Hết thời gian dành cho GDELT - bỏ qua phần còn lại")
+            return
         modes = {"vol": ["timelinevol"], "both": ["timelinevol", "timelinetone"],
                  "tone": ["timelinetone"]}[kind]
         for mode in modes:
