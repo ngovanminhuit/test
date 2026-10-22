@@ -52,6 +52,9 @@ jobs:
       - name: Cham diem ngay gan nhat
         run: python infotrade.py score 2>&1 | tee results/score.log
 
+      - name: Gia lap giao dich ngoai mau
+        run: python infotrade.py simulate --lam 0.003 2>&1 | tee results/simulate.log
+
       - name: Luu ket qua vao repo
         if: always()
         run: |

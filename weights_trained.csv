@@ -1,0 +1,101 @@
+﻿id,name,W_init,W_trained,so_mau_co_tin,nguon
+1,Quyết định lãi suất FOMC,0,0,0,chua co
+2,Dot plot / dự báo lãi suất Fed,0,0,0,chua co
+3,Phát biểu Chủ tịch Fed,0,0,0,tu dong
+4,Biên bản họp FOMC,0,0,0,chua co
+5,CPI Mỹ,0,0,0,chua co
+6,Core CPI,0,0,0,chua co
+7,PCE / Core PCE,0,0,0,chua co
+8,PPI,0,0,0,chua co
+9,Bảng lương phi nông nghiệp (NFP),0,0,0,chua co
+10,Tỷ lệ thất nghiệp Mỹ,0,0,0,chua co
+11,Đơn trợ cấp thất nghiệp hàng tuần,0,0,0,chua co
+12,GDP Mỹ,0,0,0,chua co
+13,PMI ISM sản xuất/dịch vụ,0,0,0,chua co
+14,Doanh số bán lẻ Mỹ,0,0,0,chua co
+15,Lợi suất trái phiếu Mỹ 10 năm,-700,-36,316,tu dong
+16,Chênh lệch lợi suất 2Y–10Y,0,0,0,tu dong
+17,Chỉ số DXY,-800,-263,316,tu dong
+18,Bảng cân đối Fed (QT/QE),0,0,0,chua co
+19,"Thanh khoản ròng Fed (TGA, Reverse Repo)",0,0,0,chua co
+20,Xác suất lãi suất CME FedWatch,0,0,0,chua co
+21,S&P 500,650,-19,318,tu dong
+22,Nasdaq,750,-87,317,tu dong
+23,VIX,-600,-62,317,tu dong
+24,Giá vàng,150,97,315,tu dong
+25,Giá dầu WTI,-150,-104,317,tu dong
+26,Kết quả kinh doanh Big Tech,450,160,43,tu dong
+27,"Cổ phiếu crypto (MSTR, COIN)",350,137,318,tu dong
+28,USD/JPY (carry trade),-700,-642,324,tu dong
+29,Chính sách BOJ,-600,-614,70,tu dong
+30,Kích thích kinh tế / PBoC Trung Quốc,450,31,69,tu dong
+31,Lãi suất ECB,0,0,0,chua co
+32,Cung tiền M2 toàn cầu,0,0,0,chua co
+33,Dòng tiền ròng ETF BTC spot Mỹ,0,0,0,chua co
+34,Dòng tiền ETF ETH,0,0,0,chua co
+35,Coinbase Premium,550,366,482,tu dong
+36,Doanh nghiệp mua/bán BTC,500,713,43,tu dong
+37,Quỹ / tổ chức công bố nắm giữ BTC,350,307,57,tu dong
+38,Premium/discount quỹ BTC,0,0,0,chua co
+39,Nguồn cung USDT,600,469,367,tu dong
+40,Nguồn cung USDC,300,-60,414,tu dong
+41,Mint/burn stablecoin lớn,0,0,0,chua co
+42,Báo cáo dòng vốn CoinShares,0,0,0,chua co
+43,Open interest futures CME,0,0,0,chua co
+44,Kimchi premium,-150,-309,482,tu dong
+45,Funding rate,-500,-755,396,tu dong
+46,Open interest BTC toàn sàn,0,0,0,chua co
+47,Thanh lý long,0,0,0,chua co
+48,Thanh lý short,0,0,0,chua co
+49,Tỷ lệ long/short,0,0,0,chua co
+50,Quyền chọn đáo hạn (max pain),0,0,0,chua co
+51,Put/Call ratio,0,0,0,chua co
+52,Implied volatility (DVOL),-250,329,257,tu dong
+53,Basis futures,0,0,0,chua co
+54,Vùng thanh lý tập trung,0,0,0,chua co
+55,Skew quyền chọn 25-delta,0,0,0,chua co
+56,Khối lượng giao dịch spot,150,-121,204,tu dong
+57,BTC nạp vào sàn,0,0,0,chua co
+58,BTC rút khỏi sàn,0,0,0,chua co
+59,Dự trữ BTC trên sàn,0,0,0,chua co
+60,Cá voi chuyển trên 1.000 BTC,0,0,0,chua co
+61,Thợ đào chuyển BTC lên sàn,0,0,0,chua co
+62,Hashrate,100,103,482,tu dong
+63,Điều chỉnh độ khó khai thác,50,-134,35,tu dong
+64,Hash ribbons,350,412,5,tu dong
+65,MVRV,-300,-426,141,tu dong
+66,SOPR,250,-51,141,tu dong
+67,NUPL,-250,-605,141,tu dong
+68,Holder dài hạn (LTH) bán ra,0,0,0,chua co
+69,Ví ngủ đông lâu năm hoạt động lại,0,0,0,chua co
+70,Số địa chỉ hoạt động,100,-33,482,tu dong
+71,Phí giao dịch / mempool,80,-570,482,tu dong
+72,Ví chính phủ chuyển BTC,0,0,0,chua co
+73,Quyết định / vụ kiện của SEC,0,0,0,chua co
+74,Luật crypto Mỹ,0,0,0,chua co
+75,Dự trữ BTC chiến lược quốc gia,0,0,0,chua co
+76,Phát ngôn Tổng thống Mỹ về crypto,0,0,0,chua co
+77,Thuế quan / chiến tranh thương mại,0,0,0,chua co
+78,Trung Quốc cấm / siết crypto,0,0,0,chua co
+79,Quy định MiCA châu Âu,0,0,0,chua co
+80,Quốc gia hợp pháp hóa BTC,0,0,0,chua co
+81,Bầu cử / sự kiện chính trị lớn,0,0,0,chua co
+82,Căng thẳng địa chính trị / chiến tranh,0,0,0,chua co
+83,Shutdown chính phủ Mỹ / trần nợ,0,0,0,chua co
+84,Chính sách thuế crypto,0,0,0,chua co
+85,Sàn bị hack,0,0,0,chua co
+86,Sàn phá sản / mất thanh khoản,0,0,0,chua co
+87,Stablecoin mất peg,-700,258,482,tu dong
+88,Mt.Gox / FTX trả coin cho chủ nợ,0,0,0,chua co
+89,Chu kỳ halving,200,293,53,tu dong
+90,"Ra mắt sản phẩm mới (ETF, options)",0,0,0,chua co
+91,Ngân hàng lớn tham gia crypto,0,0,0,chua co
+92,Biến động mạnh của ETH / altcoin lớn,300,-573,482,tu dong
+93,Lỗ hổng / sự cố mạng Bitcoin,0,0,0,chua co
+94,Doanh nghiệp thanh toán chấp nhận BTC,0,0,0,chua co
+95,Fear & Greed Index,-300,176,457,tu dong
+96,"Google Trends ""Bitcoin""",0,0,0,chua co
+97,"Tâm lý mạng xã hội (X, Reddit)",0,0,0,chua co
+98,BTC dominance,0,0,0,chua co
+99,Vị trí giá so MA200 / mốc kỹ thuật,400,743,121,tu dong
+100,Tin đồn lớn (FUD/FOMO),0,0,0,chua co

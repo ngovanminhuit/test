@@ -510,7 +510,10 @@ def cmd_train(a):
     years = S["candle1"].dt.year.values
     log(f"Mẫu: {len(S)} (tăng {int((y > 0).sum())}, giảm {int((y < 0).sum())}), "
         f"{S['candle1'].min():%Y-%m-%d} -> {S['candle1'].max():%Y-%m-%d}")
-    log(f"Node tự động: {len(auto)} | node có dữ liệu trong mẫu: {int((np.abs(X) > 0).any(0).sum())}/100")
+    has = (np.abs(X) > 0).any(0)
+    w0 = np.where(has, w0, 0.0)  # node chưa có dữ liệu: W = 0
+    log(f"Node tự động: {len(auto)} | node có dữ liệu trong mẫu: {int(has.sum())}/100 "
+        f"(còn lại W = 0)")
 
     test_years = [Y for Y in sorted(set(years)) if (years < Y).sum() >= 30]
     best_lam, rows = 0.1, []
@@ -604,6 +607,79 @@ def cmd_score(a):
     log(f"Node có tin: {int((x != 0).sum())}/100 - nhớ nhập tin định tính vào {MANUAL_DM}")
 
 
+# ----------------------------------------------------------------- giả lập
+def max_drawdown(eq):
+    peak = np.maximum.accumulate(eq)
+    return float((eq / peak - 1).min())
+
+
+def cmd_simulate(a):
+    """Giả lập ngoài mẫu: năm Y dùng W học từ các năm trước, chấm điểm MỌI ngày của năm Y.
+    Tín hiệu ở ngày d (sau khi đóng nến d) -> vào lệnh giá đóng cửa d, giữ 2 phiên, đóng ở close d+2.
+    Lệnh không chồng nhau (đang giữ lệnh thì bỏ qua tín hiệu mới). Phí 0.1% mỗi chiều."""
+    nodes = load_nodes()
+    ids = [n["id"] for n in nodes]
+    w0 = np.array([n["w0"] for n in nodes]) / 1000
+    btc = load_btc()
+    X_all, _ = build_features(nodes, btc, btc.index)
+    S = make_samples(btc, pd.Timestamp(a.start), a.move)
+    S = S[S["info_date"].isin(X_all.index)].reset_index(drop=True)
+    Xs = X_all.loc[S["info_date"].values, ids].values
+    y = S["y"].values.astype(float)
+    years = S["candle1"].dt.year.values
+    has = (np.abs(Xs) > 0).any(0)
+    w0 = np.where(has, w0, 0.0)
+    lam = a.lam
+    c = btc["close"]
+    fwd = c.shift(-2) / c - 1
+    test_years = [Y for Y in sorted(set(years)) if (years < Y).sum() >= 30]
+    parts = []
+    for Y in test_years:
+        w = fit(Xs[years < Y], y[years < Y], w0, lam)
+        days = btc.index[(btc.index.year == Y) & fwd.notna().values]
+        z = X_all.loc[days, ids].values @ w
+        parts.append(pd.DataFrame({"date": days, "p_tang": 1 / (1 + np.exp(-z)),
+                                   "ret2": fwd.reindex(days).values}))
+    D = pd.concat(parts, ignore_index=True)
+    log(f"Giả lập {D.date.min():%Y-%m-%d} -> {D.date.max():%Y-%m-%d} | {len(D)} ngày | "
+        f"node dùng: {int(has.sum())}/100 | lambda={lam} | phí {a.fee:.2%}/chiều\n")
+
+    bh = float(c.reindex(D.date).iloc[-1] / c.reindex(D.date).iloc[0])
+    log(f"Mua & giữ BTC cùng kỳ: {bh - 1:+.1%}\n")
+    log(f"  {'Ngưỡng':<8}{'Lệnh':>6}{'Long':>6}{'Short':>6}{'Thắng':>8}{'TB/lệnh':>9}"
+        f"{'Tổng lãi':>11}{'Sụt giảm max':>14}")
+    best = None
+    for th in (0.52, 0.55, 0.60, 0.65, 0.70):
+        trades, skip = [], -1
+        for i, r in D.iterrows():
+            if i <= skip:
+                continue
+            side = 1 if r.p_tang >= th else (-1 if r.p_tang <= 1 - th else 0)
+            if side:
+                trades.append((r.date, side, r.p_tang, side * r.ret2 - 2 * a.fee))
+                skip = i + 1
+        T = pd.DataFrame(trades, columns=["date", "side", "p_tang", "ret"])
+        if T.empty:
+            log(f"  {th:<8.2f}{0:>6}")
+            continue
+        eq = np.cumprod(1 + T["ret"].values)
+        log(f"  {th:<8.2f}{len(T):>6}{int((T.side > 0).sum()):>6}{int((T.side < 0).sum()):>6}"
+            f"{(T.ret > 0).mean():>8.1%}{T.ret.mean():>+9.2%}{eq[-1] - 1:>+11.1%}{max_drawdown(eq):>14.1%}")
+        if th == a.th:
+            best = T.assign(von=eq)
+    if best is not None:
+        os.makedirs("results", exist_ok=True)
+        best.to_csv("results/simulation_trades.csv", index=False, encoding="utf-8-sig")
+        best["nam"] = pd.to_datetime(best.date).dt.year
+        log(f"\nTheo năm (ngưỡng {a.th}):")
+        for Y, g in best.groupby("nam"):
+            yr = c[c.index.year == Y]
+            log(f"  {Y}: {len(g):>3} lệnh, thắng {(g.ret > 0).mean():.0%}, "
+                f"lãi {np.prod(1 + g.ret) - 1:+.1%} | BTC cả năm {yr.iloc[-1] / yr.iloc[0] - 1:+.1%}")
+    D.to_csv("results/simulation_daily.csv", index=False, encoding="utf-8-sig")
+    log("\nĐã ghi: results/simulation_trades.csv, results/simulation_daily.csv")
+
+
 def main():
     try:
         sys.stdout.reconfigure(encoding="utf-8")  # console Windows hiển thị tiếng Việt
@@ -615,10 +691,16 @@ def main():
     t = sub.add_parser("train")
     t.add_argument("--start", default="2018-01-01")
     t.add_argument("--move", type=float, default=0.05, help="tổng biến động 2 phiên (0.05 = 5%%)")
+    m = sub.add_parser("simulate")
+    m.add_argument("--start", default="2018-01-01")
+    m.add_argument("--move", type=float, default=0.05)
+    m.add_argument("--lam", type=float, default=0.1)
+    m.add_argument("--th", type=float, default=0.55, help="ngưỡng xác suất vào lệnh")
+    m.add_argument("--fee", type=float, default=0.001)
     s = sub.add_parser("score")
     s.add_argument("--date")
     a = ap.parse_args()
-    {"fetch": cmd_fetch, "train": cmd_train, "score": cmd_score}[a.cmd](a)
+    {"fetch": cmd_fetch, "train": cmd_train, "score": cmd_score, "simulate": cmd_simulate}[a.cmd](a)
 
 
 if __name__ == "__main__":

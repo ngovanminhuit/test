@@ -1,0 +1,22 @@
+Giả lập 2019-01-01 -> 2026-10-19 | 2849 ngày | node dùng: 34/100 | lambda=0.003 | phí 0.10%/chiều
+
+Mua & giữ BTC cùng kỳ: +2057.9%
+
+  Ngưỡng    Lệnh  Long Short   Thắng  TB/lệnh   Tổng lãi  Sụt giảm max
+  0.52      1315   564   751   47.3%   -0.14%     -95.7%        -97.2%
+  0.55      1098   451   647   46.5%   -0.06%     -84.6%        -91.0%
+  0.60       763   299   464   46.1%   -0.27%     -94.9%        -96.5%
+  0.65       477   182   295   45.3%   -0.22%     -80.6%        -83.6%
+  0.70       273    99   174   45.1%   -0.18%     -57.9%        -71.7%
+
+Theo năm (ngưỡng 0.55):
+  2019: 165 lệnh, thắng 45%, lãi -44.0% | BTC cả năm +89.5%
+  2020: 149 lệnh, thắng 49%, lãi -30.4% | BTC cả năm +301.7%
+  2021: 142 lệnh, thắng 45%, lãi -57.2% | BTC cả năm +57.6%
+  2022: 146 lệnh, thắng 49%, lãi +15.6% | BTC cả năm -65.3%
+  2023: 134 lệnh, thắng 51%, lãi -2.0% | BTC cả năm +154.5%
+  2024: 141 lệnh, thắng 44%, lãi -36.7% | BTC cả năm +111.8%
+  2025: 135 lệnh, thắng 46%, lãi -3.5% | BTC cả năm -7.3%
+  2026:  86 lệnh, thắng 41%, lãi +33.0% | BTC cả năm -5.3%
+
+Đã ghi: results/simulation_trades.csv, results/simulation_daily.csv
