@@ -1,0 +1,48 @@
+name: zzz backtest BTC 4h
+
+on:
+  workflow_dispatch:
+    inputs:
+      symbol:
+        description: "Cap giao dich"
+        default: "BTCUSDT"
+  push:
+    branches: [main]
+    paths: ["zzz_backtest/**", ".github/workflows/zzz_backtest.yml"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: zzz-backtest
+  cancel-in-progress: true
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Cai goi
+        working-directory: zzz_backtest
+        run: npm install
+      - name: Chay backtest
+        working-directory: zzz_backtest
+        env:
+          SYMBOL: ${{ github.event.inputs.symbol || 'BTCUSDT' }}
+        run: |
+          mkdir -p ../results
+          npx tsx run.ts 2>&1 | tee ../results/zzz_btc4h.log
+          # run.ts ghi vao results/ cua thu muc hien tai, chuyen ve goc repo
+          cp -r results/* ../results/ 2>/dev/null || true
+      - name: Luu ket qua
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add results/zzz_btc4h*
+          git commit -m "zzz backtest BTC 4h: cap nhat ket qua" || echo "khong co thay doi"
+          git pull --rebase origin main || true
+          git push
