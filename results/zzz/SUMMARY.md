@@ -1,6 +1,6 @@
 # Tổng hợp thử nghiệm zzz
 
-Cập nhật: 2026-10-25T10:55:11.020Z
+Cập nhật: 2026-10-25T11:03:30.269Z
 
 | Thử nghiệm | Cặp/khung | R:R | Lệnh | Tỷ lệ thắng | Tổng R | R/lệnh | Sụt R |
 |---|---|---|---|---|---|---|---|
