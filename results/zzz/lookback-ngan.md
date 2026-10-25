@@ -2,7 +2,7 @@
 
 Ví dụ: rút ngắn cửa sổ tìm tín hiệu (kênh 1: 20 nến, kênh 2: 40 nến)
 
-- Cặp: BTCUSDT · Khung: 4h · 20121 nến (2017-08-17 → 2026-10-25)
+- Cặp: BTCUSDT · Khung: 4h · 20122 nến (2017-08-17 → 2026-10-25)
 - Tham số ghi đè: `{"lookbackWith":20,"lookbackCounter":40}`
 - Vào ở giá đóng cửa nến tín hiệu, nến chạm cả SL và TP tính thua, chưa tính phí/trượt giá.
 

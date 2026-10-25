@@ -2,7 +2,7 @@
 
 Cấu hình mặc định của zzz trên web
 
-- Cặp: BTCUSDT · Khung: 4h · 20121 nến (2017-08-17 → 2026-10-25)
+- Cặp: BTCUSDT · Khung: 4h · 20122 nến (2017-08-17 → 2026-10-25)
 - Tham số ghi đè: `{}`
 - Vào ở giá đóng cửa nến tín hiệu, nến chạm cả SL và TP tính thua, chưa tính phí/trượt giá.
 
