@@ -1,0 +1,57 @@
+name: zzz khai pha quy luat vao lenh
+
+on:
+  workflow_dispatch:
+    inputs:
+      oos:
+        description: "Cap thu cuoi (khong dung de chon)"
+        default: "SUIUSDT"
+      rr:
+        description: "R:R"
+        default: "1.5"
+      fee:
+        description: "Phi khu hoi (%)"
+        default: "0.1"
+
+permissions:
+  contents: write
+
+jobs:
+  mine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Cai goi
+        run: |
+          (cd zzz_backtest && npm install)
+          pip install pandas numpy
+      - name: Xuat dac diem moi nen
+        working-directory: zzz_backtest
+        env:
+          RR: ${{ github.event.inputs.rr }}
+        run: |
+          SYMBOL=BTCUSDT npx tsx mine_features.ts
+          SYMBOL=${{ github.event.inputs.oos }} npx tsx mine_features.ts
+          mkdir -p ../results/zzz
+          cp results/zzz/mine_*.csv ../results/zzz/
+      - name: Khai pha quy luat
+        env:
+          RR: ${{ github.event.inputs.rr }}
+          FEE: ${{ github.event.inputs.fee }}
+          OOS: ${{ github.event.inputs.oos }}
+        run: python3 zzz_backtest/mine_rules.py
+      - name: Luu ket qua
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add results/zzz/rules.md results/zzz/rules_all.csv
+          git commit -m "zzz khai pha quy luat: cap nhat" || echo "khong co thay doi"
+          git pull --rebase origin main || true
+          git push
