@@ -1,0 +1,48 @@
+name: zzz doi chung ngau nhien
+
+on:
+  workflow_dispatch:
+    inputs:
+      symbol:
+        description: "Cap giao dich"
+        default: "SUIUSDT"
+      interval:
+        description: "Khung"
+        default: "4h"
+      sims:
+        description: "So lan mo phong"
+        default: "10000"
+
+permissions:
+  contents: write
+
+jobs:
+  random:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Cai goi
+        working-directory: zzz_backtest
+        run: npm install
+      - name: Doi chung
+        working-directory: zzz_backtest
+        env:
+          SYMBOL: ${{ github.event.inputs.symbol }}
+          INTERVAL: ${{ github.event.inputs.interval }}
+          SIMS: ${{ github.event.inputs.sims }}
+        run: |
+          npx tsx random_control.ts
+          mkdir -p ../results/zzz
+          cp results/zzz/random* ../results/zzz/
+      - name: Luu ket qua
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add results/zzz/random*
+          git commit -m "zzz doi chung ngau nhien: cap nhat" || echo "khong co thay doi"
+          git pull --rebase origin main || true
+          git push
