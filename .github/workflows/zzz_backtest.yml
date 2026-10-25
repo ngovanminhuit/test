@@ -1,11 +1,18 @@
-name: zzz backtest BTC 4h
+name: zzz thu nghiem
 
+# Chạy tay: Actions → "zzz thu nghiem" → Run workflow. Tự chạy khi sửa zzz_backtest/ trên main.
 on:
   workflow_dispatch:
     inputs:
+      exps:
+        description: "Ten thu nghiem (file trong zzz_backtest/experiments, cach nhau dau phay) hoac all"
+        default: "all"
       symbol:
-        description: "Cap giao dich"
-        default: "BTCUSDT"
+        description: "Ghi de cap giao dich (de trong = theo file)"
+        default: ""
+      interval:
+        description: "Ghi de khung (vi du 1h, 4h, 1d; de trong = theo file)"
+        default: ""
   push:
     branches: [main]
     paths: ["zzz_backtest/**", ".github/workflows/zzz_backtest.yml"]
@@ -20,7 +27,7 @@ concurrency:
 jobs:
   backtest:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,20 +36,26 @@ jobs:
       - name: Cai goi
         working-directory: zzz_backtest
         run: npm install
-      - name: Chay backtest
+      - name: Kiem tra kieu
+        working-directory: zzz_backtest
+        run: npx tsc --noEmit --target es2022 --module esnext --moduleResolution bundler --strict --skipLibCheck --types node run.ts
+      - name: Chay thu nghiem
         working-directory: zzz_backtest
         env:
-          SYMBOL: ${{ github.event.inputs.symbol || 'BTCUSDT' }}
+          EXPS: ${{ github.event.inputs.exps || 'all' }}
+          SYMBOL: ${{ github.event.inputs.symbol }}
+          INTERVAL: ${{ github.event.inputs.interval }}
         run: |
+          npx tsx run.ts 2>&1 | tee run.log
+          rm -rf ../results/zzz
           mkdir -p ../results
-          npx tsx run.ts 2>&1 | tee ../results/zzz_btc4h.log
-          # run.ts ghi vao results/ cua thu muc hien tai, chuyen ve goc repo
-          cp -r results/* ../results/ 2>/dev/null || true
+          cp -r results/zzz ../results/zzz
+          cp run.log ../results/zzz/run.log
       - name: Luu ket qua
         run: |
           git config user.name "github-actions"
           git config user.email "actions@users.noreply.github.com"
-          git add results/zzz_btc4h*
-          git commit -m "zzz backtest BTC 4h: cap nhat ket qua" || echo "khong co thay doi"
+          git add results/zzz
+          git commit -m "zzz thu nghiem: cap nhat ket qua" || echo "khong co thay doi"
           git pull --rebase origin main || true
           git push

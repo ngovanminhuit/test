@@ -1,0 +1,10 @@
+{
+  "name": "lookback-ngan",
+  "note": "Ví dụ: rút ngắn cửa sổ tìm tín hiệu (kênh 1: 20 nến, kênh 2: 40 nến)",
+  "symbol": "BTCUSDT",
+  "interval": "4h",
+  "from": "2017-08-17",
+  "to": null,
+  "rr": [1.5],
+  "settings": { "lookbackWith": 20, "lookbackCounter": 40 }
+}

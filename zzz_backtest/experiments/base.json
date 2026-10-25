@@ -1,0 +1,10 @@
+{
+  "name": "base",
+  "note": "Cấu hình mặc định của zzz trên web",
+  "symbol": "BTCUSDT",
+  "interval": "4h",
+  "from": "2017-08-17",
+  "to": null,
+  "rr": [1, 1.5, 2],
+  "settings": {}
+}
