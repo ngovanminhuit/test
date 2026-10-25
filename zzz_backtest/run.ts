@@ -67,6 +67,7 @@ function maxDD(list: Trade[], rr: number) {
 const all = readdirSync('experiments').filter((f) => f.endsWith('.json')).map((f) => f.replace(/\.json$/, ''));
 const want = (process.env.EXPS ?? 'all') === 'all' ? all : process.env.EXPS!.split(',').map((s) => s.trim()).filter(Boolean);
 const outDir = 'results/zzz';
+const TAG = (process.env.SYMBOL && process.env.SYMBOL !== 'BTCUSDT') ? `_${process.env.SYMBOL}` : '';
 mkdirSync(outDir, { recursive: true });
 const summary: string[] = [];
 
@@ -110,13 +111,13 @@ for (const name of want) {
     }
     const a = stat(res.trades, rr);
     summary.push(`| ${name} | ${symbol} ${interval} | ${rr} | ${a.total} | ${a.rate} | ${a.netR} | ${a.exp} | ${maxDD(res.trades, rr)} |`);
-    writeFileSync(`${outDir}/${name}_rr${rr}_trades.csv`, 'channel,direction,entry_time,entry,stop,take_profit,exit_time,result\n' + res.trades.map((t) =>
+    writeFileSync(`${outDir}/${name}${TAG}_rr${rr}_trades.csv`, 'channel,direction,entry_time,entry,stop,take_profit,exit_time,result\n' + res.trades.map((t) =>
       [t.channel, t.direction, new Date(t.entryTime).toISOString(), t.entry, t.stopLoss, t.takeProfit, t.exitTime ? new Date(t.exitTime).toISOString() : '', t.result].join(',')).join('\n'));
   }
-  writeFileSync(`${outDir}/${name}.md`, md);
-  writeFileSync(`${outDir}/${name}.json`, JSON.stringify(json, null, 2));
+  writeFileSync(`${outDir}/${name}${TAG}.md`, md);
+  writeFileSync(`${outDir}/${name}${TAG}.json`, JSON.stringify(json, null, 2));
 }
 
 const sum = `# Tổng hợp thử nghiệm zzz\n\nCập nhật: ${new Date().toISOString()}\n\n| Thử nghiệm | Cặp/khung | R:R | Lệnh | Tỷ lệ thắng | Tổng R | R/lệnh | Sụt R |\n|---|---|---|---|---|---|---|---|\n${summary.join('\n')}\n`;
-writeFileSync(`${outDir}/SUMMARY.md`, sum);
+writeFileSync(`${outDir}/SUMMARY${TAG}.md`, sum);
 console.log(sum);

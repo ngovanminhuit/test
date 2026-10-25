@@ -77,5 +77,6 @@ for (const t of res.trades) {
   lines.push(row.join(','));
 }
 mkdirSync('results/zzz', { recursive: true });
-writeFileSync('results/zzz/trades_features.csv', lines.join('\n'));
+const TAG = SYMBOL === 'BTCUSDT' ? '' : `_${SYMBOL}`;
+writeFileSync(`results/zzz/trades_features${TAG}.csv`, lines.join('\n'));
 console.log(`Đã xuất ${lines.length - 1} lệnh`);

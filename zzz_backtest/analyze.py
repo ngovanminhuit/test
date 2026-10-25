@@ -1,13 +1,16 @@
 """Phân tích điểm chung / khác biệt giữa lệnh thắng và thua của zzz (BTC 4h), có kiểm chứng ngoài mẫu."""
+import os
 import pandas as pd, numpy as np
+TAG = os.environ.get('TAG', '')
+SPLIT_STR = os.environ.get('SPLIT', '2023-01-01')
 from scipy import stats
 from statsmodels.stats.multitest import multipletests
 
-df = pd.read_csv('results/zzz/trades_features.csv')
+df = pd.read_csv(f'results/zzz/trades_features{TAG}.csv')
 RR = 1.5
 df['win'] = (df.result == 'win').astype(int)
 df['t'] = pd.to_datetime(df.entry_time)
-SPLIT = pd.Timestamp('2023-01-01', tz='UTC')
+SPLIT = pd.Timestamp(SPLIT_STR, tz='UTC')
 train, test = df[df.t < SPLIT], df[df.t >= SPLIT]
 out = []
 P = out.append
@@ -19,7 +22,7 @@ def stat(d):
 P('# Phân tích lệnh thắng / thua · zzz BTC 4h (R:R 1,5)\n')
 n, w, wr, tot, ex = stat(df)
 P(f'- Tổng {n} lệnh đã đóng: thắng {w} ({wr:.1f}%), tổng R {tot:.1f}, R/lệnh {ex:.3f}. Hòa vốn ở 40%.')
-P(f'- Huấn luyện (<2023): {stat(train)[0]} lệnh, thắng {stat(train)[2]:.1f}%, R/lệnh {stat(train)[4]:.3f}. Kiểm tra (>=2023): {stat(test)[0]} lệnh, thắng {stat(test)[2]:.1f}%, R/lệnh {stat(test)[4]:.3f}.\n')
+P(f'- Huấn luyện (trước mốc tách): {stat(train)[0]} lệnh, thắng {stat(train)[2]:.1f}%, R/lệnh {stat(train)[4]:.3f}. Kiểm tra (từ mốc tách): {stat(test)[0]} lệnh, thắng {stat(test)[2]:.1f}%, R/lệnh {stat(test)[4]:.3f}.\n')
 
 # 1. Mô tả MFE/MAE
 P('## 1. Hành vi sau khi vào lệnh (MFE/MAE tính theo R)')
@@ -88,5 +91,5 @@ pred = tree.predict_proba(X[~mask])[:, 1]
 auc_te = stats.mannwhitneyu(pred[y[~mask] == 1], pred[y[~mask] == 0])[0] / ((y[~mask] == 1).sum() * (y[~mask] == 0).sum())
 P(f'\n- AUC trên kiểm tra: {auc_te:.3f} (0,5 = không có khả năng dự đoán).\n')
 
-open('results/zzz/analysis.md', 'w').write('\n'.join(out))
+open(f'results/zzz/analysis{TAG}.md', 'w').write('\n'.join(out))
 print('\n'.join(out))
