@@ -131,7 +131,8 @@ export function isPivotHigh(high: number[], k: number, left: number, right: numb
   return true;
 }
 
-export function buildSeries(candles: Candle[]): Series {
+/** smaFast/smaSlow: chu kỳ hai đường xu hướng (mặc định 64/128). Trường vẫn tên sma64/sma128 để không đổi phần còn lại. */
+export function buildSeries(candles: Candle[], smaFast = 64, smaSlow = 128): Series {
   const open = candles.map((c) => c.o);
   const high = candles.map((c) => c.h);
   const low = candles.map((c) => c.l);
@@ -144,8 +145,8 @@ export function buildSeries(candles: Candle[]): Series {
     low,
     close,
     ema20: ema(close, 20),
-    sma64: sma(close, 64),
-    sma128: sma(close, 128),
+    sma64: sma(close, smaFast),
+    sma128: sma(close, smaSlow),
     rsi: rsi(close, 14),
     bbUpper: bb.upper,
     bbMid: bb.mid,

@@ -14,9 +14,10 @@ const DAY = 86_400_000;
  *  - Nếu một nến chạm cả SL và TP, tính là thua (giả định thận trọng).
  *  - Mỗi kênh chỉ giữ 1 lệnh tại một thời điểm, mỗi nến N/M chỉ được dùng 1 lần.
  */
-export function runBacktest(tf: Series, d1: Series, tfMs: number, cfg: Settings, warmup = 130): BacktestResult {
+/** pre: xu hướng tính sẵn (không phụ thuộc tham số kênh) để quét tham số nhanh. */
+export function runBacktest(tf: Series, d1: Series, tfMs: number, cfg: Settings, warmup = 130, pre?: { d1Trends: TrendResult[]; tfTrends: TrendResult[] }): BacktestResult {
   const n = tf.close.length;
-  const d1Trends: TrendResult[] = d1.close.map((_, k) => trendAt(d1, k));
+  const d1Trends: TrendResult[] = pre?.d1Trends ?? d1.close.map((_, k) => trendAt(d1, k));
   const trades: Trade[] = [];
   const busyUntil: Record<ChannelId, number> = { with: -1, counter: -1 };
   const usedAnchor: Record<ChannelId, Set<number>> = { with: new Set(), counter: new Set() };
@@ -29,7 +30,7 @@ export function runBacktest(tf: Series, d1: Series, tfMs: number, cfg: Settings,
 
     const d1t = d1Trends[dPtr];
     if (d1t.trend === 'SIDEWAYS') continue; // cả 2 kênh đều cần D1 có xu hướng
-    const tft = trendAt(tf, i);
+    const tft = pre?.tfTrends[i] ?? trendAt(tf, i);
     const res = evaluateChannels({ d1: d1t, tf: tft, series: tf, i, cfg });
 
     for (const ch of [res.with, res.counter]) {

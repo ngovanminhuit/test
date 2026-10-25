@@ -17,7 +17,20 @@ interface View {
   back: (x: number) => number; // đổi giá trị trong view về giá thật
 }
 
+const viewCache = new WeakMap<Series, { BUY?: View; SELL?: View }>();
+
+/** Tạo view một lần cho mỗi chuỗi/hướng (trước đây tạo lại mảng cả chuỗi ở mỗi nến → O(n²)). */
 function makeView(s: Series, dir: Direction): View {
+  let c = viewCache.get(s);
+  if (!c) { c = {}; viewCache.set(s, c); }
+  const hit = c[dir];
+  if (hit) return hit;
+  const v = buildView(s, dir);
+  c[dir] = v;
+  return v;
+}
+
+function buildView(s: Series, dir: Direction): View {
   if (dir === 'BUY') {
     return { high: s.high, low: s.low, close: s.close, band: s.bbLower, rsi: s.rsi, back: (x) => x };
   }
