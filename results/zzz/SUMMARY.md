@@ -1,0 +1,10 @@
+# Tổng hợp thử nghiệm zzz
+
+Cập nhật: 2026-10-25T10:55:11.020Z
+
+| Thử nghiệm | Cặp/khung | R:R | Lệnh | Tỷ lệ thắng | Tổng R | R/lệnh | Sụt R |
+|---|---|---|---|---|---|---|---|
+| base | BTCUSDT 4h | 1 | 137 | 43.8% | -17 | -0.124 | 24 |
+| base | BTCUSDT 4h | 1.5 | 135 | 37.0% | -10 | -0.074 | 26.5 |
+| base | BTCUSDT 4h | 2 | 130 | 33.1% | -1 | -0.008 | 27 |
+| lookback-ngan | BTCUSDT 4h | 1.5 | 99 | 37.4% | -6.5 | -0.066 | 15 |

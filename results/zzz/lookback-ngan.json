@@ -1,0 +1,54 @@
+{
+  "name": "lookback-ngan",
+  "symbol": "BTCUSDT",
+  "interval": "4h",
+  "settings": {
+    "lookbackWith": 20,
+    "lookbackCounter": 40
+  },
+  "rr1.5.Tất cả": {
+    "total": 99,
+    "w": 37,
+    "l": 62,
+    "o": 0,
+    "rate": "37.4%",
+    "netR": -6.5,
+    "exp": -0.066
+  },
+  "rr1.5.Kênh 1": {
+    "total": 66,
+    "w": 24,
+    "l": 42,
+    "o": 0,
+    "rate": "36.4%",
+    "netR": -6,
+    "exp": -0.091
+  },
+  "rr1.5.Kênh 2": {
+    "total": 33,
+    "w": 13,
+    "l": 20,
+    "o": 0,
+    "rate": "39.4%",
+    "netR": -0.5,
+    "exp": -0.015
+  },
+  "rr1.5.Mua": {
+    "total": 57,
+    "w": 21,
+    "l": 36,
+    "o": 0,
+    "rate": "36.8%",
+    "netR": -4.5,
+    "exp": -0.079
+  },
+  "rr1.5.Bán": {
+    "total": 42,
+    "w": 16,
+    "l": 26,
+    "o": 0,
+    "rate": "38.1%",
+    "netR": -2,
+    "exp": -0.048
+  }
+}
